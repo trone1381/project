@@ -1,0 +1,79 @@
+NOTE : I use "#" symbol as comment
+#I have recently learned to work with postgresql, so I answer this question with postgresql query commands
+
+
+In a data warehouse schema, data denormalization refers to the process of intentionally adding redundant data to one or more tables to improve query performance and simplify data retrieval. Denormalization includes aggregating data in fact tables or adding more columns to dimension tables. It is feasible to reduce the requirement for connecting tables and enhance the efficiency of queries that use those tables by adding redundant data to dimension tables. For high-volume or frequently accessible data, this can be very helpful.Denormalization is a commonly used technique in data warehousing.There are three types of denormalization:
+-Join rows from different tables, so you don't have to use queries with JOIN.
+-Perform aggregate calculations like SUM() or COUNT() or MAX() or others, so you don't have to use queries with GROUP BY.
+-Pre-calculate expensive calculations, so you don't have to use queries with complex expressions in the select-list.
+
+Denormalization can provide several benefits for high traffic web applications , particularly in terms of improving performance and scalability:
+
+1. Improved Read Performance: Denormalization reduces the need for complex joins, which can significantly speed up read operations. For example, in an e-commerce application, instead of joining tables like products and categories every time a product page is accessed, denormalizing the category information into the products table can simplify and speed up queries to fetch product details :
+
+ #normalized
+   CREATE TABLE products (
+       product_id SERIAL PRIMARY KEY,
+       name VARCHAR(255),
+       price NUMERIC(10, 2),
+       category_id INT REFERENCES categories(category_id)
+   );
+
+   CREATE TABLE categories (
+       category_id SERIAL PRIMARY KEY,
+       name VARCHAR(100)
+   );
+
+
+   #denormalized
+   CREATE TABLE products_denormalized (
+       product_id SERIAL PRIMARY KEY,
+       name VARCHAR(255),
+       price NUMERIC(10, 2),
+       category_name VARCHAR(100) -- Denormalized category name
+   );
+   
+
+2. Reduced Query Complexity: Denormalization simplifies query complexity by eliminating joins and allowing straightforward retrieval of related data. This is especially useful for queries that involve fetching aggregated data or generating reports. For instance, denormalizing order details into a single table can simplify queries for generating sales reports.
+
+  
+   #normalized 
+   CREATE TABLE orders (
+       order_id SERIAL PRIMARY KEY,
+       customer_id SMALLINT REFERENCES customers(customer_id),
+       order_date DATE
+   );
+
+   CREATE TABLE order_items (
+       order_item_id SERIAL PRIMARY KEY,
+       order_id INT REFERENCES orders(order_id),
+       product_id INT REFERENCES products(product_id),
+       quantity INT,
+       price NUMERIC(10, 2)
+   );
+
+   #denormalized 
+   CREATE TABLE orders_denormalized (
+       order_id SERIAL PRIMARY KEY,
+       customer_id SMALLINT,
+       order_date DATE,
+       product_name VARCHAR(255),
+       quantity INT,
+       total_price NUMERIC(10, 2)
+   );
+
+3. Support for Analytics and Reporting: Denormalization facilitates faster data retrieval for analytical queries and reporting purposes. For example, in a content management system, denormalizing article metadata (such as author name, publication date) into a single table can speed up queries for generating trending articles or author-specific reports.For instance, let's consider a scenario where we have a blog application with two tables: posts and comments. The comments table has a foreign key post_id referencing the id column in the posts table. In a normalized schema, you would need to join these tables to retrieve comments for a post.
+
+To denormalize this schema for better performance in a high-traffic scenario, you can create a separate table called post_comments_count that stores the count of comments for each post. This denormalized table would look something like this:
+
+#denormalized
+CREATE TABLE post_comments_count (
+    post_id SMALLINT PRIMARY KEY,
+    comments_count SMALLINT
+);
+
+You can then update this post_comments_count table whenever a new comment is added or deleted for a post. By doing this, you eliminate the need for joins when querying for the number of comments for a post, which can significantly improve performance in a high-traffic environment.
+
+4. Lower Latency: By storing denormalized data, you reduce the number of disk accesses and network round-trips needed to fetch data, thereby lowering latency. 
+
+5. Enhanced Scalability: With reduced query complexity and improved read performance, SQL can handle higher volumes of read requests without requiring additional hardware resources.

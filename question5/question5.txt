@@ -1,7 +1,0 @@
-NOTE : I use "#" as symbol for comments like python lang
-#I have recently learned to work with postgresql, so I answer this question with postgresql query commands
-
-#the code is here :
-UPDATE parents     #specifiyng that we are updating parents TABLE.
-SET has_children = false     #set 'false' value for has_children column due to the condition in next line.
-WHERE id NOT IN (SELECT parent_id FROM children);     #the condition that uses WHERE order.
